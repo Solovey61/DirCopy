@@ -1,9 +1,11 @@
-import org.apache.commons.io.FileUtils;
-
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -43,7 +45,7 @@ public class Main {
     }
 
     private static boolean isDstDirValid(Path dstDirPath) {
-        if (Files.exists(dstDirPath) && !Files.isWritable(dstDirPath) || !Files.exists(dstDirPath) && !dstDirPath.toFile().mkdir()) {
+        if (Files.exists(dstDirPath) && !Files.isWritable(dstDirPath) || !Files.exists(dstDirPath) && !Files.isWritable(dstDirPath.getParent())) {
             System.err.println("Destination path is not accessible");
             return false;
         }
@@ -51,9 +53,20 @@ public class Main {
     }
 
     private static void copyFile(Path srcFilePath, Path dstFilePath) throws IOException {
-        if (srcFilePath.equals(dstFilePath))
+        if (srcFilePath.equals(dstFilePath)) {
             System.err.println("Can't copy directory to itself");
-        FileUtils.copyDirectory(srcFilePath.toFile(), dstFilePath.toFile());
+            return;
+        }
+        List<Path> pathsList = Files.walk(srcFilePath).collect(Collectors.toList());
+        pathsList.forEach(f -> {
+            try {
+                Files.copy(f, Path.of(dstFilePath.toString() + File.separator + srcFilePath.relativize(f).toString()), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+
         System.out.println("\tDirectory successfully copied");
     }
 }
