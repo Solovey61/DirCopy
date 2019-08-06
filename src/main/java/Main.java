@@ -1,8 +1,8 @@
-import java.io.File;
+import org.apache.commons.io.FileUtils;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -59,8 +59,22 @@ public class Main {
         }
         List<Path> pathsList = Files.walk(srcFilePath).collect(Collectors.toList());
         pathsList.forEach(f -> {
+            Path srcRelative = srcFilePath.relativize(f);
+            Path fileDst = dstFilePath.resolve(srcRelative);
             try {
-                Files.copy(f, Path.of(dstFilePath.toString() + File.separator + srcFilePath.relativize(f).toString()), StandardCopyOption.REPLACE_EXISTING);
+                if (Files.isDirectory(f)) {
+                    if (fileDst.toFile().mkdir())
+                        System.out.println(String.format("Directory %s created successfully", fileDst.toString()));
+                    else
+                        System.err.println(String.format("Directory %s wasn't created", fileDst.toString()));
+                }
+                else {
+                    Files.copy(f, fileDst);
+                    if (FileUtils.contentEquals(f.toFile(), fileDst.toFile()))
+                        System.out.println(String.format("File %s copied successfully", fileDst.toString()));
+                    else
+                        System.err.println(String.format("File %s wasn't copied", fileDst.toString()));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
