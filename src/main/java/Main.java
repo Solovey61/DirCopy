@@ -71,7 +71,7 @@ public class Main {
                 else {
                     Files.copy(f, fileDst);
                     if (FileUtils.contentEquals(f.toFile(), fileDst.toFile()))
-                        System.out.println(String.format("File %s copied successfully", fileDst.toString()));
+                        System.out.println(String.format("File %s copied successfully (%s)", fileDst.toString(), FileUtils.byteCountToDisplaySize(Files.size(fileDst))));
                     else
                         System.err.println(String.format("File %s wasn't copied", fileDst.toString()));
                 }
